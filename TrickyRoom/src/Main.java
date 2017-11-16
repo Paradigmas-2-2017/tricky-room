@@ -18,12 +18,18 @@ public class Main {
 		//profile.setParameter(Profile.CONTAINER_NAME, "PutNameHere");
 		//profile.setParameter(Profile.MAIN_HOST, "localhost");
 		
-		//Instantiate agent
+		//Instantiate agents
 		Agent clock = new ClockAgent();
-		//agent.addBehaviour( ... );
+		//Agent livingRoom = new RoomAgent();
+
+		Object[] argslivingRoom = new Object[1];
+		argslivingRoom[0] = "2";
+		
 		try {
-			AgentController agentController = container.acceptNewAgent( "clock-agent", clock);
-			agentController.start();
+			AgentController clockAC = container.acceptNewAgent( "clockagent", clock);
+			AgentController livingRoomAC = container.createNewAgent("livingRoom", "RoomAgent", argslivingRoom);
+			clockAC .start();
+			livingRoomAC.start();
 		} catch (StaleProxyException e) {
 		    e.printStackTrace();
 		}
