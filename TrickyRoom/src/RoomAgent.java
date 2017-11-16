@@ -14,7 +14,6 @@ public class RoomAgent extends Agent{
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
 			MessageTemplate.MatchOntology("day-phase") );
 
-	private AID[] roomsId;
 	private AID[] neighbourId;
 	private int peopleLimit = 4; 
 	private int peoplePresent = 1; 
@@ -66,16 +65,17 @@ public class RoomAgent extends Agent{
 				template.addServices(sd);
 				for(int i = 1; i < args.length; i++) {
 					neighbourS[i - 1] = args[i].toString();
-					System.out.println(getLocalName() + "'s neighbourS[" + (i - 1) + "]: " + neighbourS[i - 1]);
+					//System.out.println(getLocalName() + "'s neighbourS[" + (i - 1) + "]: " + neighbourS[i - 1]);
 				}
 				try {
 					DFAgentDescription[] result = DFService.search(this, template);
 					for (int i = 0; i < result.length; ++i) {
-						System.out.println(getLocalName() + "'s result[" + i + "].getName().getLocalName(): " + result[i].getName().getLocalName());
+						//System.out.println(getLocalName() + "'s result[" + i + "].getName().getLocalName(): " + result[i].getName().getLocalName());
 						for(int j = 0; j < args.length - 1; j++) {
+							//System.out.println(getLocalName() + "'s neighbourS[" + j + "]: " + neighbourS[j] + " and result[" + i + "].getName().getLocalName(): " + result[i].getName().getLocalName());
 							if(neighbourS[j].equals(result[i].getName().getLocalName())) {
 								neighbourId[iD] = result[i].getName();
-								System.out.println(getLocalName() + "'s neighbourId[" + iD + "]: " + neighbourId[iD]);
+								//System.out.println(getLocalName() + "'s neighbourId[" + iD + "]: " + neighbourId[iD]);
 								iD++;
 							}
 						}
@@ -98,8 +98,10 @@ public class RoomAgent extends Agent{
 	}
 	
 	private void printRoomState(){
-		System.out.println("\t" + getLocalName() + "\t  has " + (openWindow ? "open..." : "closed.") 
-				+ "  windows,\t and turned " + (lightsOn ? "..on" : ".off") + " lights. \t "
+		//String.format("%-15s", "Hello World"); // prints: |Hello World |
+		System.out.println("\t" + (String.format("%-15s", getLocalName())) + "\t  has " 
+				+ (String.format("%6s",(openWindow ? "open" : "closed"))) 
+				+ "  windows,\t and turned " + (String.format("%3s",(lightsOn ? "on" : "off"))) + " lights. \t "
 				+ peoplePresent + "/" + peopleLimit + " people.");
 		/*
 		for(int i = 0; i < neighbourId.length; i++) {

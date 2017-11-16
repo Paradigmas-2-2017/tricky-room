@@ -2,7 +2,6 @@ import jade.core.Agent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.TickerBehaviour;
 import jade.core.behaviours.WakerBehaviour;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
@@ -24,48 +23,24 @@ public class BuilderAgent extends Agent{
 
 		AgentContainer container = runtime.createAgentContainer( profile );
 		
-		//Instantiate agents
-		Agent clock = new ClockAgent();
-		//Agent livingRoom = new RoomAgent();
-
-		Object[] argsliving_Room = new Object[1];
-		argsliving_Room[0] = "2";
+		Object[] argslivingRoom = new Object[1];
+		argslivingRoom[0] = "2";
 		
-		Object[] argsbed____Room = new Object[2];
-		argsbed____Room[0] = "3";
-		argsbed____Room[1] = "livingRoom";
+		Object[] argsbedRoom = new Object[2];
+		argsbedRoom[0] = "3";
+		argsbedRoom[1] = "livingRoom";
 		
-		Object[] argsKitchen_Room = new Object[3];
-		argsKitchen_Room[0] = "5";
-		argsKitchen_Room[1] = "livingRoom";
-		argsKitchen_Room[2] = "bedRoom";
-		
-		Behaviour buil = new TickerBehaviour( this, BUILDING_TIME ) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onTick() {
-				/*
-				try {
-					AgentController livingRoomAC = container.createNewAgent("livingRoom", "RoomAgent", argslivingRoom);
-					AgentController bedRoomAC = container.createNewAgent("bedRoom", "RoomAgent", argsbedRoom);
-					AgentController kitchenAC = container.createNewAgent("kitchen", "RoomAgent", argsKitchen);
-					livingRoomAC.start();
-					bedRoomAC.start();
-					kitchenAC.start();
-				} catch (StaleProxyException e) {
-				    e.printStackTrace();
-				}
-				*/
-			}
-		};
+		Object[] argsKitchen = new Object[3];
+		argsKitchen[0] = "5";
+		argsKitchen[1] = "livingRoom";
+		argsKitchen[2] = "bedRoom";
 		
 		Behaviour buildKitchen = new WakerBehaviour( this, BUILDING_TIME ) {
 			private static final long serialVersionUID = 1L;
 			
 			protected void handleElapsedTimeout() {
 				try {
-					AgentController kitchenAC = container.createNewAgent("kitchen_Room", "RoomAgent", argsKitchen_Room);
+					AgentController kitchenAC = container.createNewAgent("kitchen", "RoomAgent", argsKitchen);
 					kitchenAC.start();
 				} catch (StaleProxyException e) {
 				    e.printStackTrace();
@@ -78,7 +53,7 @@ public class BuilderAgent extends Agent{
 			
 			protected void handleElapsedTimeout() {
 				try {
-					AgentController bedRoomAC = container.createNewAgent("bed_____Room", "RoomAgent", argsbed____Room);
+					AgentController bedRoomAC = container.createNewAgent("bedRoom", "RoomAgent", argsbedRoom);
 					bedRoomAC.start();
 				} catch (StaleProxyException e) {
 				    e.printStackTrace();
@@ -92,7 +67,7 @@ public class BuilderAgent extends Agent{
 			
 			protected void handleElapsedTimeout() {
 				try {
-					AgentController livingRoomAC = container.createNewAgent("living__Room", "RoomAgent", argsliving_Room);
+					AgentController livingRoomAC = container.createNewAgent("livingRoom", "RoomAgent", argslivingRoom);
 					livingRoomAC.start();
 				} catch (StaleProxyException e) {
 				    e.printStackTrace();
