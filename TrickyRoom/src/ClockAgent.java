@@ -21,7 +21,7 @@ public class ClockAgent extends Agent {
 	private AID[] rooms;
 	
 	protected void setup() {
-		System.out.println("ClockAgent: "+ getName() + " started");
+		System.out.println("ClockAgent: "+ getLocalName() + " started");
 		dayPhase = 0;
 		
 		Behaviour tickTac = new TickerBehaviour( this, PHASE_SIZE ) {

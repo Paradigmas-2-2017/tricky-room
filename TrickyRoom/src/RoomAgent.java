@@ -14,6 +14,7 @@ public class RoomAgent extends Agent{
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
 			MessageTemplate.MatchOntology("day-phase") );
 
+	private AID[] roomsId;
 	private AID[] neighbourId;
 	private int peopleLimit = 4; 
 	private int peoplePresent = 1; 
@@ -49,14 +50,14 @@ public class RoomAgent extends Agent{
 	}
 	
 	private void setArgs(Object[]args) {
-		String[] neighbours = new String[args.length]; 
-		neighbourId = new AID[args.length];
-		int Id = 0;
+		String[] neighbourS = new String[args.length]; 
+		neighbourId = new AID[args.length - 1];
+		int iD = 0;
 		if(args.length > 0) {
 			try {
 				peopleLimit = Integer.parseInt(args[0].toString());
 			} catch (Exception NumberFormatException) {
-				System.out.println("Wrong input of people limt: " + args[0].toString());
+				System.out.println("Wrong input of " + getLocalName() + "'s people limt: " + args[0].toString());
 			}
 			if(args.length > 1) {
 				DFAgentDescription template = new DFAgentDescription();
@@ -64,34 +65,47 @@ public class RoomAgent extends Agent{
 				sd.setType("room-service");
 				template.addServices(sd);
 				for(int i = 1; i < args.length; i++) {
-					neighbours[i] = args[i].toString();
+					neighbourS[i - 1] = args[i].toString();
+					System.out.println(getLocalName() + "'s neighbourS[" + (i - 1) + "]: " + neighbourS[i - 1]);
 				}
 				try {
 					DFAgentDescription[] result = DFService.search(this, template);
 					for (int i = 0; i < result.length; ++i) {
-						for(int j = 1; j < args.length; j++) {
-							if(neighbours[j].equals(result[i].getName().getLocalName())) {
-								neighbourId[Id] = result[i].getName();
-								Id++;
+						System.out.println(getLocalName() + "'s result[" + i + "].getName().getLocalName(): " + result[i].getName().getLocalName());
+						for(int j = 0; j < args.length - 1; j++) {
+							if(neighbourS[j].equals(result[i].getName().getLocalName())) {
+								neighbourId[iD] = result[i].getName();
+								System.out.println(getLocalName() + "'s neighbourId[" + iD + "]: " + neighbourId[iD]);
+								iD++;
 							}
 						}
+					}
+					if(neighbourId.length != (args.length -1)) {
+						System.out.println("Wrong input of " + getLocalName() + "'s neighbours, neighbourID.lenght don't match (args.lenght - 1)");
+						doDelete();	
 					}
 				}
 				catch (FIPAException fe) {
 					fe.printStackTrace();
+					System.out.println("Wrong input of " + getLocalName() + "'s neighbours.");
+					doDelete();
 				}
-				System.out.println("Wrong input of neighbours.");
-				//doDelete();
 			}
 		}else {
-			System.out.println("No input of " + getLocalName() + " arguments.");
+			System.out.println("No input of " + getLocalName() + "'s arguments.");
 		}
 		return;
 	}
 	
 	private void printRoomState(){
-		System.out.println(getLocalName() + " has " + (openWindow ? "open" : "closed") 
-				+ " windows, and turned " + (lightsOn ? "on" : "off") + " lights.");
+		System.out.println("\t" + getLocalName() + "\t  has " + (openWindow ? "open..." : "closed.") 
+				+ "  windows,\t and turned " + (lightsOn ? "..on" : ".off") + " lights. \t "
+				+ peoplePresent + "/" + peopleLimit + " people.");
+		/*
+		for(int i = 0; i < neighbourId.length; i++) {
+			System.out.println(getLocalName() + "'s neighbourId[" + i + "]: " + neighbourId[i].getName());
+		}
+		*/
 	}
 	
 	private void onEvent() {
