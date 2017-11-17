@@ -1,4 +1,6 @@
 import java.util.Arrays;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -16,13 +18,17 @@ public class RoomAgent extends Agent{
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
 			MessageTemplate.MatchOntology("day-phase"));
 	
-	private MessageTemplate askNeighbourTemplate = MessageTemplate.and( 
-			MessageTemplate.MatchPerformative(ACLMessage.REQUEST), 
-			MessageTemplate.MatchConversationId("neighbourhood"));
+	private MessageTemplate sendProposeTemplate = MessageTemplate.and( 
+			MessageTemplate.MatchPerformative(ACLMessage.PROPOSE), 
+			MessageTemplate.MatchConversationId("send-propose"));
 	
 	private MessageTemplate greetNeighbourTemplate = MessageTemplate.and( 
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
 			MessageTemplate.MatchConversationId("greetNeighbour"));
+	
+	private MessageTemplate moveProposeTemplate = MessageTemplate.and( 
+			MessageTemplate.MatchPerformative(ACLMessage.PROPOSE), 
+			MessageTemplate.MatchConversationId("move-person"));
 
 	private AID[] neighbourId;
 	private int peopleLimit = 4; 
@@ -67,6 +73,8 @@ public class RoomAgent extends Agent{
 		System.out.println("RoomAgent: "+ getLocalName() + " built");
 		addBehaviour(new GetTime());
 		addBehaviour(new GetNeighbour());
+		addBehaviour(new GetMovePropose());
+		addBehaviour(new GetSendPropose());
 	}
 	
 	private void setArgs(Object[]args) {
@@ -124,11 +132,11 @@ public class RoomAgent extends Agent{
 				+ (String.format("%6s",(openWindow ? "open" : "closed"))) 
 				+ "  windows,\t and turned " + (String.format("%3s",(lightsOn ? "on" : "off"))) + " lights. \t "
 				+ peoplePresent + "/" + peopleLimit + " people.");
-		
+		/*
 		for(int i = 0; i < neighbourId.length; i++) {
 			System.out.println(getLocalName() + "'s neighbourId[" + i + "]: " + neighbourId[i].getLocalName());
 		}
-		
+		*/
 	}
 	
 	private void onEvent() {
@@ -181,21 +189,6 @@ public class RoomAgent extends Agent{
 		}
 	}
 	
-	private class TellNeighbour extends CyclicBehaviour {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void action() {
-			ACLMessage msg = myAgent.receive(askNeighbourTemplate);
-			if (msg != null) {
-				System.out.println("tududupa");
-			}
-			else {
-				block();
-			}
-		}
-	}
-	
 	private class GetNeighbour extends CyclicBehaviour {
 		private static final long serialVersionUID = 1L;
 
@@ -226,6 +219,79 @@ public class RoomAgent extends Agent{
 				catch (FIPAException fe) {
 					fe.printStackTrace();
 				}		
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	private class GetMovePropose extends CyclicBehaviour{
+		private static final long serialVersionUID = 1L;
+		private int randomNum;
+		private MessageTemplate answerTemplate;
+
+		@Override
+		public void action() {
+			ACLMessage msg = myAgent.receive(moveProposeTemplate);
+			if (msg != null) {
+				System.out.println(getLocalName() + " received " + msg.getSender().getLocalName() + "'s new movePropose");
+				
+				ACLMessage moveProposeReply = msg.createReply();
+				ACLMessage sendProposeMessage = new ACLMessage(ACLMessage.PROPOSE);
+				randomNum = ThreadLocalRandom.current().nextInt(0, neighbourId.length);
+				if(neighbourId.length > 0) {
+					sendProposeMessage.addReceiver(neighbourId[randomNum]);
+					sendProposeMessage.setConversationId("send-propose");
+					sendProposeMessage.setReplyWith("send-propose"+System.currentTimeMillis());
+					myAgent.send(sendProposeMessage);
+					
+					answerTemplate = MessageTemplate.and(MessageTemplate.MatchConversationId("send-propose"),
+							MessageTemplate.MatchInReplyTo(sendProposeMessage.getReplyWith()));
+					
+					ACLMessage sendProposeReply = myAgent.blockingReceive(answerTemplate);
+					if (sendProposeReply != null) {
+						System.out.println(getLocalName() + " received " + sendProposeReply.getSender().getLocalName() + "'s new sendProposeReply");
+						// Reply received
+						
+						peoplePresent--;
+						moveProposeReply.setPerformative(sendProposeReply.getPerformative());
+						moveProposeReply.setContent(sendProposeReply.getSender().getLocalName());
+						myAgent.send(moveProposeReply);
+					}
+					else {
+						//block();
+					}
+					
+				}else {
+					//refuse no neighbour
+				}
+				
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	private class GetSendPropose extends CyclicBehaviour{
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void action() {
+			ACLMessage msg = myAgent.receive(sendProposeTemplate);
+			if (msg != null) {
+				System.out.println(getLocalName() + " received " + msg.getSender().getLocalName() + "'s new sendPropose");
+				
+				ACLMessage reply = msg.createReply();
+				if(peoplePresent < peopleLimit) {
+					reply.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+					peoplePresent++;
+				} else {
+					reply.setPerformative(ACLMessage.REJECT_PROPOSAL);
+				}
+				System.out.println(getLocalName() + " should reply " + reply.getReplyWith() + " with " + reply.getPerformative());
+				myAgent.send(reply);
 			}
 			else {
 				block();

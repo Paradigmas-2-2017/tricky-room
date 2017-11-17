@@ -9,7 +9,7 @@ import jade.wrapper.StaleProxyException;
 
 public class BuilderAgent extends Agent{
 	private static final long serialVersionUID = 1L;
-	private static final int BUILDING_TIME = 5000; //SECONDS DIVIDED BY 1000
+	private static final int BUILDING_TIME = 2500; //SECONDS DIVIDED BY 1000
 	
 	protected void setup(){
 		//jade standard code
@@ -35,14 +35,15 @@ public class BuilderAgent extends Agent{
 		argsKitchen[1] = "livingRoom";
 		argsKitchen[2] = "bedRoom";
 		
-		Agent boy = new PersonAgent();
+		Object[] argsBoy = new Object[1];
+		argsBoy[0] = "livingRoom";
 		
-		Behaviour invitePerson = new WakerBehaviour( this, BUILDING_TIME ) {
+		Behaviour inviteBoy = new WakerBehaviour( this, BUILDING_TIME ) {
 			private static final long serialVersionUID = 1L;
 			
 			protected void handleElapsedTimeout() {
 				try {
-					AgentController boyAC = container.acceptNewAgent("boy", boy);
+					AgentController boyAC = container.createNewAgent("boy", "PersonAgent", argsBoy);
 					boyAC.start();
 				} catch (StaleProxyException e) {
 				    e.printStackTrace();
@@ -60,7 +61,7 @@ public class BuilderAgent extends Agent{
 				} catch (StaleProxyException e) {
 				    e.printStackTrace();
 				}
-		 		//addBehaviour(invitePerson);
+		 		addBehaviour(inviteBoy);
       		}
 		};
 		
