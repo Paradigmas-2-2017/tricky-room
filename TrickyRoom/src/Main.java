@@ -23,6 +23,7 @@ public class Main {
 		//Instantiate agents
 		Agent clock = new ClockAgent();
 		Agent builder = new BuilderAgent();
+		Agent weatherForecast = new WeatherAgent();
 		//Agent livingRoom = new RoomAgent();
 		
 		/*
@@ -41,13 +42,15 @@ public class Main {
 		
 		try {
 		    AgentController rma = container.createNewAgent("rma", "jade.tools.rma.rma", null);
-			AgentController clockAC = container.acceptNewAgent("clockAgent", clock);
+			AgentController clockAC = container.acceptNewAgent("weatherAgent", weatherForecast);
+			AgentController weatherAC = container.acceptNewAgent("clockAgent", clock);
 			AgentController builderAC = container.acceptNewAgent("builderAgent", builder);
 			//AgentController livingRoomAC = container.createNewAgent("livingRoom", "RoomAgent", argslivingRoom);
 			//AgentController bedRoomAC = container.createNewAgent("bedRoom", "RoomAgent", argsbedRoom);
 			//AgentController kitchenAC = container.createNewAgent("kitchen", "RoomAgent", argsKitchen);
 			rma.start();
 			clockAC .start();
+			weatherAC.start();
 			builderAC.start();
 			//livingRoomAC.start();
 			//bedRoomAC.start();

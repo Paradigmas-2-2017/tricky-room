@@ -18,6 +18,10 @@ public class RoomAgent extends Agent{
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
 			MessageTemplate.MatchOntology("day-phase"));
 	
+	private MessageTemplate weatherTemplate = MessageTemplate.and( 
+			MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
+			MessageTemplate.MatchConversationId("weather-forecast"));
+	
 	private MessageTemplate sendProposeTemplate = MessageTemplate.and( 
 			MessageTemplate.MatchPerformative(ACLMessage.PROPOSE), 
 			MessageTemplate.MatchConversationId("send-propose"));
@@ -76,6 +80,7 @@ public class RoomAgent extends Agent{
 		
 		System.out.println("RoomAgent: "+ getLocalName() + " built");
 		addBehaviour(new GetTime());
+		addBehaviour(new GetWeather());
 		addBehaviour(new GetNeighbour());
 		addBehaviour(new GetMovePropose());
 		addBehaviour(new GetSendPropose());
@@ -186,6 +191,22 @@ public class RoomAgent extends Agent{
 			ACLMessage msg = myAgent.receive(timeTemplate);
 			if (msg != null) {
 				dayPhase = msg.getContent();
+				onEvent();
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	private class GetWeather extends CyclicBehaviour {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void action() {
+			ACLMessage msg = myAgent.receive(weatherTemplate);
+			if (msg != null) {
+				sunnyDay = (msg.getContent() == "0");
 				onEvent();
 			}
 			else {
