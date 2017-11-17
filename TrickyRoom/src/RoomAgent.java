@@ -29,10 +29,14 @@ public class RoomAgent extends Agent{
 	private MessageTemplate moveProposeTemplate = MessageTemplate.and( 
 			MessageTemplate.MatchPerformative(ACLMessage.PROPOSE), 
 			MessageTemplate.MatchConversationId("move-person"));
+	
+	private MessageTemplate inviteInformTemplate = MessageTemplate.and( 
+			MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
+			MessageTemplate.MatchConversationId("invite-person"));
 
 	private AID[] neighbourId;
 	private int peopleLimit = 4; 
-	private int peoplePresent = 1; 
+	private int peoplePresent = 0; 
 	private static String dayPhase = "0";
 	private boolean sunnyDay = true;
 	
@@ -75,6 +79,7 @@ public class RoomAgent extends Agent{
 		addBehaviour(new GetNeighbour());
 		addBehaviour(new GetMovePropose());
 		addBehaviour(new GetSendPropose());
+		addBehaviour(new GetInviteInform());
 	}
 	
 	private void setArgs(Object[]args) {
@@ -292,6 +297,21 @@ public class RoomAgent extends Agent{
 				}
 				System.out.println(getLocalName() + " should reply " + reply.getReplyWith() + " with " + reply.getPerformative());
 				myAgent.send(reply);
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	private class GetInviteInform extends CyclicBehaviour{
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void action() {
+			ACLMessage msg = myAgent.receive(inviteInformTemplate);
+			if (msg != null) {
+				peoplePresent++;
 			}
 			else {
 				block();

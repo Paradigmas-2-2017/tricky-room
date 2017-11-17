@@ -50,8 +50,14 @@ public class PersonAgent extends Agent{
 			doDelete();
 		}
 		
+		ACLMessage timeMessage = new ACLMessage(ACLMessage.INFORM);
+		timeMessage.addReceiver(positionId);
+		timeMessage.setConversationId("invite-person");
+		this.send(timeMessage);
+		
 		Behaviour tickerB = new TickerBehaviour( this, 5000) {
-			
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected void onTick() {
 				addBehaviour(new Walk());
