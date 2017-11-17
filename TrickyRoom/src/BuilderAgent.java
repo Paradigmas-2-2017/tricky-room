@@ -35,6 +35,21 @@ public class BuilderAgent extends Agent{
 		argsKitchen[1] = "livingRoom";
 		argsKitchen[2] = "bedRoom";
 		
+		Agent boy = new PersonAgent();
+		
+		Behaviour invitePerson = new WakerBehaviour( this, BUILDING_TIME ) {
+			private static final long serialVersionUID = 1L;
+			
+			protected void handleElapsedTimeout() {
+				try {
+					AgentController boyAC = container.acceptNewAgent("boy", boy);
+					boyAC.start();
+				} catch (StaleProxyException e) {
+				    e.printStackTrace();
+				}
+      		}
+		};
+		
 		Behaviour buildKitchen = new WakerBehaviour( this, BUILDING_TIME ) {
 			private static final long serialVersionUID = 1L;
 			
@@ -45,6 +60,7 @@ public class BuilderAgent extends Agent{
 				} catch (StaleProxyException e) {
 				    e.printStackTrace();
 				}
+		 		//addBehaviour(invitePerson);
       		}
 		};
 		

@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -12,7 +14,15 @@ public class RoomAgent extends Agent{
 	private static final long serialVersionUID = 1L;
 	private MessageTemplate timeTemplate = MessageTemplate.and( 
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
-			MessageTemplate.MatchOntology("day-phase") );
+			MessageTemplate.MatchOntology("day-phase"));
+	
+	private MessageTemplate askNeighbourTemplate = MessageTemplate.and( 
+			MessageTemplate.MatchPerformative(ACLMessage.REQUEST), 
+			MessageTemplate.MatchConversationId("neighbourhood"));
+	
+	private MessageTemplate greetNeighbourTemplate = MessageTemplate.and( 
+			MessageTemplate.MatchPerformative(ACLMessage.INFORM), 
+			MessageTemplate.MatchConversationId("greetNeighbour"));
 
 	private AID[] neighbourId;
 	private int peopleLimit = 4; 
@@ -44,8 +54,19 @@ public class RoomAgent extends Agent{
 			fe.printStackTrace();
 		}
 		
+		ACLMessage greetingMessage = new ACLMessage(ACLMessage.INFORM);
+		if(neighbourId.length > 0) {
+			for (int i = 0; i < neighbourId.length; ++i) {
+				greetingMessage.addReceiver(neighbourId[i]);
+				greetingMessage.setConversationId("greetNeighbour");
+			} 
+			greetingMessage.setContent(getLocalName());
+			this.send(greetingMessage);
+		}
+		
 		System.out.println("RoomAgent: "+ getLocalName() + " built");
 		addBehaviour(new GetTime());
+		addBehaviour(new GetNeighbour());
 	}
 	
 	private void setArgs(Object[]args) {
@@ -103,11 +124,11 @@ public class RoomAgent extends Agent{
 				+ (String.format("%6s",(openWindow ? "open" : "closed"))) 
 				+ "  windows,\t and turned " + (String.format("%3s",(lightsOn ? "on" : "off"))) + " lights. \t "
 				+ peoplePresent + "/" + peopleLimit + " people.");
-		/*
+		
 		for(int i = 0; i < neighbourId.length; i++) {
-			System.out.println(getLocalName() + "'s neighbourId[" + i + "]: " + neighbourId[i].getName());
+			System.out.println(getLocalName() + "'s neighbourId[" + i + "]: " + neighbourId[i].getLocalName());
 		}
-		*/
+		
 	}
 	
 	private void onEvent() {
@@ -153,6 +174,58 @@ public class RoomAgent extends Agent{
 			if (msg != null) {
 				dayPhase = msg.getContent();
 				onEvent();
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	private class TellNeighbour extends CyclicBehaviour {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void action() {
+			ACLMessage msg = myAgent.receive(askNeighbourTemplate);
+			if (msg != null) {
+				System.out.println("tududupa");
+			}
+			else {
+				block();
+			}
+		}
+	}
+	
+	private class GetNeighbour extends CyclicBehaviour {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void action() {
+			ACLMessage msg = myAgent.receive(greetNeighbourTemplate);
+			if (msg != null) {
+				//System.out.println(getLocalName() + " received " + msg.getContent() + "'s greeting!");
+				DFAgentDescription template = new DFAgentDescription();
+				ServiceDescription sd = new ServiceDescription();
+				sd.setType("room-service");
+				template.addServices(sd);
+				try {
+					DFAgentDescription[] result = DFService.search(myAgent, template);
+					for (int i = 0; i < result.length; ++i) {
+						/*
+						System.out.println(getLocalName() + "'s msg "+ msg.getContent() + " equals " 
+								+ result[i].getName().getLocalName() + " = " 
+								+ (msg.getContent().equals(result[i].getName().getLocalName())));
+						*/
+						if(msg.getContent().equals(result[i].getName().getLocalName())) {
+							neighbourId = Arrays.copyOf(neighbourId,neighbourId.length+1);
+							neighbourId[neighbourId.length-1] = result[i].getName();
+							//System.out.println(getLocalName() + " added new nighbour: " + neighbourId[neighbourId.length-1]);
+						}
+					}
+				}
+				catch (FIPAException fe) {
+					fe.printStackTrace();
+				}		
 			}
 			else {
 				block();
